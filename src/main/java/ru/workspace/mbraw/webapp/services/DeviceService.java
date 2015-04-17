@@ -13,30 +13,30 @@ import java.util.List;
 public class DeviceService {
 
     @Autowired
-    private IDeviceDAO dao;
+    private IDeviceDAO deviceDao;
 
     public List<Device> getDevicesWith(int limit, int offset) {
-        return dao.findWith(limit, offset);
+        return deviceDao.findWith(limit, offset);
     }
 
     public Device getDeviceBySerial(String serial) {
-        return dao.findBySerial(serial);
+        return deviceDao.findBySerial(serial);
     }
 
     public void create(Device device) {
         validate(device);
 
-        dao.create(device);
+        deviceDao.create(device);
     }
 
     public void update(Device device) {
         validate(device);
 
-        dao.update(device);
+        deviceDao.update(device);
     }
 
     public void delete(Device device) {
-        dao.delete(device);
+        deviceDao.delete(device);
     }
 
     private void validate(Device device) throws IllegalArgumentException {
