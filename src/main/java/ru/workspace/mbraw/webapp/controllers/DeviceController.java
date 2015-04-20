@@ -26,7 +26,8 @@ public class DeviceController {
     private MapperFacade mapper;
 
     @RequestMapping(method = RequestMethod.GET)
-    public List<DeviceDto> listWith(@RequestParam(defaultValue = CommonProperties.DEFAULT_FIND_LIMIT) int limit, @RequestParam(defaultValue = "0") int offset) {
+    public List<DeviceDto> listWith(@RequestParam(defaultValue = CommonProperties.DEFAULT_FIND_LIMIT) int limit,
+                                    @RequestParam(defaultValue = "0") int offset) {
         List<Device> list = service.getDevicesWith(limit, offset);
 
         return mapper.mapAsList(list, DeviceDto.class);
@@ -67,5 +68,4 @@ public class DeviceController {
         }
         service.delete(device);
     }
-
 }
