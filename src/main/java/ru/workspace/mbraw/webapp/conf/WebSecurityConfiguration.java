@@ -52,14 +52,20 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.httpBasic().authenticationEntryPoint(authenticationEntryPoint());
-        http.authorizeRequests().antMatchers("/").permitAll().anyRequest().authenticated().and().formLogin()
-                .loginPage("/login").permitAll().and().logout().permitAll().and().csrf();
+        http.authorizeRequests().antMatchers("/").permitAll().anyRequest().authenticated().and()
+                // form login:
+                .formLogin().loginPage("/login").permitAll().and()
+                // logout customization:
+                .logout().permitAll().and()
+                // cross-site request forgery enabled:
+                .csrf().and()
+                // http basic customization:
+                .authorizeRequests().antMatchers("/api/**").hasRole("USER").and().httpBasic();
     }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().withUser("user").password("password").roles("USER");
-        auth.authenticationProvider(daoAuthenticationProvider());
+        auth.authenticationProvider(daoAuthenticationProvider()).inMemoryAuthentication()
+                .withUser("user").password("password").roles("USER");
     }
 }
