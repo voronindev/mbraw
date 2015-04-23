@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -14,8 +15,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 import ru.workspace.mbraw.webapp.ApplicationTestConfiguration;
+import ru.workspace.mbraw.webapp.services.DeviceService;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.logout;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
@@ -33,6 +36,9 @@ public class AuthenticationTests extends Assert {
     @Autowired
     private FilterChainProxy springSecurityFilterChain;
 
+    @Autowired
+    private DeviceService deviceService;
+
     private MockMvc mvc;
 
     @Before
@@ -43,28 +49,35 @@ public class AuthenticationTests extends Assert {
     }
 
     @Test
-    public void formAuthenticationSuccess() throws Exception {
+    public void testFormAuthenticationSuccess() throws Exception {
         mvc.perform(formLogin("/login").user("user").password("password"))
                 .andExpect(authenticated().withRoles("USER"));
 
     }
 
     @Test
-    public void httpBasicAuthenticationSuccess() throws Exception {
-        mvc.perform(get("/api/").with(httpBasic("user", "password")))
-                .andExpect(authenticated().withRoles("USER"));
-    }
-
-    @Test
-    public void formAuthenticationFailed() throws Exception {
+    public void testFormAuthenticationFailed() throws Exception {
         mvc.perform(formLogin("/login").user("wrongUser").password("wrongPassword"))
                 .andExpect(unauthenticated());
 
     }
 
     @Test
-    public void httpBasicAuthenticationFailed() throws Exception {
+    public void testHttpBasicAuthenticationSuccess() throws Exception {
+        mvc.perform(get("/api/").with(httpBasic("user", "password")))
+                .andExpect(authenticated().withRoles("USER"));
+    }
+
+    @Test
+    public void testHttpBasicAuthenticationFailed() throws Exception {
         mvc.perform(get("/api/").with(httpBasic("wrongUser", "wrongPassword")))
+                .andExpect(unauthenticated());
+    }
+
+    @Test
+    @WithMockUser(username = "user", password = "password", roles = "USER")
+    public void testLogout() throws Exception {
+        mvc.perform(logout("/logout"))
                 .andExpect(unauthenticated());
     }
 }
