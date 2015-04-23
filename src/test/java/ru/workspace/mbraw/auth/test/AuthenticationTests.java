@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
@@ -75,9 +76,13 @@ public class AuthenticationTests extends Assert {
     }
 
     @Test
-    @WithMockUser(username = "user", password = "password", roles = "USER")
+    @WithMockUser
     public void testLogout() throws Exception {
-        mvc.perform(logout("/logout"))
-                .andExpect(unauthenticated());
+        notNull(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        isTrue(SecurityContextHolder.getContext().getAuthentication().isAuthenticated());
+
+        mvc.perform(logout("/logout")).andExpect(unauthenticated());
+
+        isNull(SecurityContextHolder.getContext().getAuthentication());
     }
 }
