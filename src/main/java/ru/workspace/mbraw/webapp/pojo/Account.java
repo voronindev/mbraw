@@ -9,7 +9,7 @@ public class Account {
     private String userName;
     private String password;
     private String firstName;
-    private String secondName;
+    private String lastName;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,12 +47,12 @@ public class Account {
         this.firstName = firstName;
     }
 
-    public String getSecondName() {
-        return secondName;
+    public String getLastName() {
+        return lastName;
     }
 
-    public void setSecondName(String secondName) {
-        this.secondName = secondName;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
 }

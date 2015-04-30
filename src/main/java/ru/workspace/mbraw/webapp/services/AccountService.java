@@ -28,6 +28,8 @@ public class AccountService {
     public void update(Account account) {
         validate(account);
 
+        account.setPassword(passwordEncoder.encode(account.getPassword()));
+
         accountDao.update(account);
     }
 
