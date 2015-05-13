@@ -52,7 +52,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers("/").denyAll().anyRequest().authenticated().and()
+        http.authorizeRequests().antMatchers("/").permitAll().anyRequest().authenticated().and()
                 // form login:
                 .formLogin().loginPage("/login").permitAll().and()
                 // logout customization:
