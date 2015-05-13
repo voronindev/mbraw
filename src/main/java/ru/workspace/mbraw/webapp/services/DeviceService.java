@@ -1,5 +1,6 @@
 package ru.workspace.mbraw.webapp.services;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +41,7 @@ public class DeviceService {
     }
 
     private void validate(Device device) throws IllegalArgumentException {
-        if (device.getSerial() != null && device.getSerial().isEmpty()) {
+        if (StringUtils.isBlank(device.getSerial())) {
             throw new IllegalArgumentException("Serial number must not be empty");
         }
     }

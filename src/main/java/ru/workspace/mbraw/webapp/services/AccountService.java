@@ -1,5 +1,6 @@
 package ru.workspace.mbraw.webapp.services;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -42,10 +43,10 @@ public class AccountService {
     }
 
     private void validate(Account account) throws IllegalArgumentException {
-        if (account.getUserName() != null && account.getUserName().isEmpty()) {
+        if (StringUtils.isBlank(account.getUserName())) {
             throw new IllegalArgumentException("User name must not be empty");
         }
-        if (account.getPassword() != null && account.getPassword().isEmpty()) {
+        if (StringUtils.isBlank(account.getPassword())) {
             throw new IllegalArgumentException("User password must not be empty");
         }
     }

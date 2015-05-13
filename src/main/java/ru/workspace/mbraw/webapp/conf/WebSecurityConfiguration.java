@@ -52,15 +52,13 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers("/").permitAll().anyRequest().authenticated().and()
+        http.authorizeRequests().antMatchers("/").denyAll().anyRequest().authenticated().and()
                 // form login:
                 .formLogin().loginPage("/login").permitAll().and()
                 // logout customization:
-                .logout().permitAll().and()
-                // cross-site request forgery enabled:
-                .csrf().and()
+                .logout().logoutUrl("/logout").permitAll().and()
                 // http basic customization:
-                .authorizeRequests().antMatchers("/api/**").hasRole("USER").and().httpBasic();
+                .authorizeRequests().antMatchers("/api/**").denyAll().anyRequest().hasRole("USER").and().httpBasic();
     }
 
     @Autowired
