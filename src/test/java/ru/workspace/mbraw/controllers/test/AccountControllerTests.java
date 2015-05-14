@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -44,8 +45,8 @@ public class AccountControllerTests extends Assert {
     }
 
     @Test
+    @WithMockUser
     public void me() throws Exception {
-
         mvc.perform(get("/api/accounts/me").with(user("user").password("password").roles("USER"))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

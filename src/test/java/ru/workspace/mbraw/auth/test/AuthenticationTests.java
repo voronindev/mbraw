@@ -16,7 +16,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 import ru.workspace.mbraw.webapp.ApplicationTestConfiguration;
-import ru.workspace.mbraw.webapp.services.DeviceService;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.logout;
@@ -36,9 +35,6 @@ public class AuthenticationTests extends Assert {
 
     @Autowired
     private FilterChainProxy springSecurityFilterChain;
-
-    @Autowired
-    private DeviceService deviceService;
 
     private MockMvc mvc;
 
