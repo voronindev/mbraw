@@ -16,12 +16,22 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 
+import javax.annotation.Resource;
+
 @Configuration
 @EnableWebMvcSecurity
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private UserDetailsService accountDetailsService;
+    @Resource(name = "userDetailsServiceTest")
+    public UserDetailsService accountDetailsService;
+
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        authenticationProvider.setUserDetailsService(accountDetailsService);
+        return authenticationProvider;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,23 +52,16 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return entryPoint;
     }
 
-    @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-        authenticationProvider.setUserDetailsService(accountDetailsService);
-        return authenticationProvider;
-    }
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers("/").permitAll().anyRequest().authenticated().and()
+        http.authorizeRequests()
+                .antMatchers("/**").authenticated().and()
                 // form login:
                 .formLogin().loginPage("/login").permitAll().and()
                 // logout customization:
-                .logout().logoutUrl("/logout").permitAll().and()
-                // http basic customization:
-                .authorizeRequests().antMatchers("/api/**").denyAll().anyRequest().hasRole("USER").and().httpBasic();
+                .logout().logoutUrl("/logout").permitAll();
+        // http basic customization:
+        //.authorizeRequests().antMatchers("/api/**").denyAll().anyRequest().hasRole("USER").and().httpBasic();
     }
 
     @Autowired

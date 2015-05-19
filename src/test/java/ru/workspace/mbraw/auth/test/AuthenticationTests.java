@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.web.FilterChainProxy;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -19,10 +19,9 @@ import ru.workspace.mbraw.webapp.ApplicationTestConfiguration;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.logout;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = ApplicationTestConfiguration.class)
@@ -31,44 +30,34 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 public class AuthenticationTests extends Assert {
 
     @Autowired
-    private WebApplicationContext wac;
-
-    @Autowired
-    private FilterChainProxy springSecurityFilterChain;
+    private WebApplicationContext context;
 
     private MockMvc mvc;
 
     @Before
     public void setUp() {
         if (mvc == null) {
-            mvc = MockMvcBuilders.webAppContextSetup(wac).addFilters(springSecurityFilterChain).build();
+            mvc = MockMvcBuilders
+                    .webAppContextSetup(context)
+                    .apply(springSecurity())
+                    .build();
         }
     }
 
     @Test
+    @WithMockUser
     public void testFormAuthenticationSuccess() throws Exception {
-        mvc.perform(formLogin("/login").user("user").password("password"))
+        mvc.perform(formLogin("/login"))
                 .andExpect(authenticated().withRoles("USER"));
 
     }
 
     @Test
+    @WithUserDetails(value = "son_of_a_bitch")
     public void testFormAuthenticationFailed() throws Exception {
-        mvc.perform(formLogin("/login").user("wrongUser").password("wrongPassword"))
+        mvc.perform(formLogin("/login"))
                 .andExpect(unauthenticated());
 
-    }
-
-    @Test
-    public void testHttpBasicAuthenticationSuccess() throws Exception {
-        mvc.perform(get("/api/").with(httpBasic("user", "password")))
-                .andExpect(authenticated().withRoles("USER"));
-    }
-
-    @Test
-    public void testHttpBasicAuthenticationFailed() throws Exception {
-        mvc.perform(get("/api/").with(httpBasic("wrongUser", "wrongPassword")))
-                .andExpect(unauthenticated());
     }
 
     @Test

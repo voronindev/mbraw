@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ru.workspace.mbraw.webapp.pojo.Account;
 
-@Service
+@Service(value = "userDetailsService")
 public class AccountDetailsService implements UserDetailsService {
 
     @Autowired
