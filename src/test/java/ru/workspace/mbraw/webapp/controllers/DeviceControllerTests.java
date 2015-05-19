@@ -1,4 +1,4 @@
-package ru.workspace.mbraw.controllers.test;
+package ru.workspace.mbraw.webapp.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,13 +18,16 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 import ru.workspace.mbraw.webapp.ApplicationTestConfiguration;
+import ru.workspace.mbraw.webapp.EntityGenerator;
 import ru.workspace.mbraw.webapp.dto.DeviceDto;
+import ru.workspace.mbraw.webapp.exceptions.DeviceBindException;
 import ru.workspace.mbraw.webapp.pojo.Device;
+import ru.workspace.mbraw.webapp.pojo.Platform;
 import ru.workspace.mbraw.webapp.services.DeviceService;
+import ru.workspace.mbraw.webapp.services.PlatformService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -33,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = ApplicationTestConfiguration.class)
 @WebAppConfiguration
+@ActiveProfiles("test")
 public class DeviceControllerTests extends Assert {
 
     @Autowired
@@ -44,21 +49,21 @@ public class DeviceControllerTests extends Assert {
     @Autowired
     private DeviceService deviceService;
 
-    private MockMvc mvc;
+    @Autowired
+    private PlatformService platformService;
 
-    private Random randomValue;
+    private MockMvc mvc;
 
     @Before
     public void setUp() {
         if (mvc == null) {
             mvc = MockMvcBuilders.webAppContextSetup(wac).build();
-            randomValue = new Random();
         }
     }
 
     @Test
     public void testAddEntity() throws Exception {
-        Device device = getRandomDevice();
+        Device device = EntityGenerator.getRandomDevice();
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String json = ow.writeValueAsString(device);
 
@@ -77,7 +82,7 @@ public class DeviceControllerTests extends Assert {
         List<Device> devices = new ArrayList<Device>(15);
 
         for (int i = 0; i < 15; i++) {
-            Device device = getRandomDevice();
+            Device device = EntityGenerator.getRandomDevice();
             devices.add(device);
             deviceService.create(device);
         }
@@ -96,7 +101,7 @@ public class DeviceControllerTests extends Assert {
 
     @Test
     public void testDeviceBySerial() throws Exception {
-        Device device = getRandomDevice();
+        Device device = EntityGenerator.getRandomDevice();
 
         deviceService.create(device);
 
@@ -112,7 +117,7 @@ public class DeviceControllerTests extends Assert {
 
     @Test
     public void testDeleteEntity() throws Exception {
-        Device device = getRandomDevice();
+        Device device = EntityGenerator.getRandomDevice();
 
         deviceService.create(device);
 
@@ -125,7 +130,7 @@ public class DeviceControllerTests extends Assert {
 
     @Test
     public void testUpdateEntity() throws Exception {
-        Device device = getRandomDevice();
+        Device device = EntityGenerator.getRandomDevice();
 
         deviceService.create(device);
 
@@ -142,25 +147,93 @@ public class DeviceControllerTests extends Assert {
 
         Device updatedDevice = deviceService.getDeviceBySerial(serial);
 
-        isTrue(device.equals(updatedDevice));
+        isTrue(device.getId().equals(updatedDevice.getId()));
+        isTrue(device.getAddress().equals(updatedDevice.getAddress()));
+        isTrue(device.getDescription().equals(updatedDevice.getDescription()));
     }
 
-    private Device getRandomDevice() {
-        StringBuilder sb = new StringBuilder(10);
-        sb.append("vd");
 
-        int max = 99999999;
-        int min = 10000000;
+    @Test
+    public void testListBindDevices() throws Exception {
+        Platform platform = EntityGenerator.getRandomPlatform();
+        platformService.create(platform);
 
-        int value = randomValue.nextInt(max - min + 1) + min;
+        List<Device> devicesGroup = new ArrayList<Device>(7);
 
-        sb.append(String.valueOf(value));
+        for (int i = 0; i < 7; i++) {
+            Device device = EntityGenerator.getRandomDevice();
+            device.setPlatform(platform);
+            deviceService.create(device);
+            devicesGroup.add(device);
+        }
 
-        Device device = new Device();
-        device.setSerial(sb.toString());
-        device.setAddress("address");
-        device.setDescription("description");
+        ObjectMapper jsonMapper = new ObjectMapper();
 
-        return device;
+        // Check platform 1:
+        MvcResult result = mvc.perform(get("/api/platforms/{platformId}/devices", platform.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        List<Device> receivedListPlatform_1 = jsonMapper.readValue(result.getResponse().getContentAsString(),
+                jsonMapper.getTypeFactory().constructCollectionType(List.class, Device.class));
+
+        notEmpty(receivedListPlatform_1);
+        isTrue(receivedListPlatform_1.containsAll(devicesGroup));
+        isTrue(receivedListPlatform_1.size() == devicesGroup.size());
+    }
+
+    @Test
+    public void testWrongBindDevices() throws Exception {
+        Platform platform = EntityGenerator.getRandomPlatform();
+        platformService.create(platform);
+
+        Platform platform2 = EntityGenerator.getRandomPlatform();
+        platformService.create(platform2);
+
+        Device device = EntityGenerator.getRandomDevice();
+        device.setPlatform(platform);
+        deviceService.create(device);
+
+        MvcResult result = mvc.perform(put("/api/devices/{serial}/platforms/{platformId}", device.getSerial(), platform2.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict()).andReturn();
+
+        isInstanceOf(DeviceBindException.class, result.getResolvedException());
+    }
+
+    @Test
+    public void testBindDevice() throws Exception {
+        Platform platform = EntityGenerator.getRandomPlatform();
+        platformService.create(platform);
+
+        Device device = EntityGenerator.getRandomDevice();
+        deviceService.create(device);
+
+        mvc.perform(put("/api/devices/{serial}/platforms/{platformId}", device.getSerial(), platform.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        Device boundDevice = deviceService.getDeviceBySerial(device.getSerial());
+
+        isTrue(boundDevice.getPlatform().getId().equals(platform.getId()));
+    }
+
+    @Test
+    public void testUnbindDevice() throws Exception {
+        Platform platform = EntityGenerator.getRandomPlatform();
+        platformService.create(platform);
+
+        Device device = EntityGenerator.getRandomDevice();
+        device.setPlatform(platform);
+        deviceService.create(device);
+
+        mvc.perform(delete("/api/devices/{serial}/platforms/{platformId}", device.getSerial(), platform.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        Device boundDevice = deviceService.getDeviceBySerial(device.getSerial());
+
+        isNull(boundDevice.getPlatform());
     }
 }
