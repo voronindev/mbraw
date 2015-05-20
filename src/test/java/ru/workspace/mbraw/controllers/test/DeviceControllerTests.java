@@ -73,7 +73,6 @@ public class DeviceControllerTests extends Assert {
                 .andExpect(jsonPath("$.description", is(device.getDescription())));
     }
 
-
     @Test
     public void testListWith() throws Exception {
         List<Device> devices = new ArrayList<Device>(15);

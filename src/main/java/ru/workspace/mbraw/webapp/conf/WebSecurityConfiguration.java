@@ -19,10 +19,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationEn
 import javax.annotation.Resource;
 
 @Configuration
-@EnableWebMvcSecurity
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Resource(name = "userDetailsServiceTest")
+    @Autowired
     public UserDetailsService accountDetailsService;
 
     @Bean

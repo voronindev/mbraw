@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -45,23 +44,19 @@ public class AuthenticationTests extends Assert {
     }
 
     @Test
-    @WithMockUser
     public void testFormAuthenticationSuccess() throws Exception {
-        mvc.perform(formLogin("/login"))
+        mvc.perform(formLogin("/login").user("user").password("password"))
                 .andExpect(authenticated().withRoles("USER"));
-
     }
 
     @Test
-    @WithUserDetails(value = "son_of_a_bitch")
     public void testFormAuthenticationFailed() throws Exception {
-        mvc.perform(formLogin("/login"))
+        mvc.perform(formLogin("/login").user("wrongUser").password("wrongPassword"))
                 .andExpect(unauthenticated());
-
     }
 
     @Test
-    @WithMockUser
+    @WithUserDetails
     public void testLogout() throws Exception {
         notNull(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         isTrue(SecurityContextHolder.getContext().getAuthentication().isAuthenticated());

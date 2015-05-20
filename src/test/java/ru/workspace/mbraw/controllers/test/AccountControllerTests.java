@@ -6,7 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -25,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = ApplicationTestConfiguration.class)
 @WebAppConfiguration
-@WithMockUser
 @ActiveProfiles("test")
 public class AccountControllerTests extends Assert {
 
@@ -45,12 +44,13 @@ public class AccountControllerTests extends Assert {
     }
 
     @Test
+    @WithUserDetails
     public void me() throws Exception {
         mvc.perform(get("/api/accounts/me")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.username", is("user")))
-                .andExpect(jsonPath("$.authorities[*].authority", containsInAnyOrder("ROLE_USER")));
+                .andExpect(jsonPath("$.authorities[*].authority", containsInAnyOrder("USER")));
     }
 }

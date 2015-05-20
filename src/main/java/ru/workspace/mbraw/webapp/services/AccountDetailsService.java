@@ -1,6 +1,7 @@
 package ru.workspace.mbraw.webapp.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,7 +10,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ru.workspace.mbraw.webapp.pojo.Account;
 
-@Service(value = "userDetailsService")
+@Service
+@Profile("prod")
 public class AccountDetailsService implements UserDetailsService {
 
     @Autowired

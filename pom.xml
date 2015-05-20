@@ -15,6 +15,10 @@
         <version>1.2.3.RELEASE</version>
     </parent>
 
+    <properties>
+        <spring-security.version>4.0.0.RELEASE</spring-security.version>
+    </properties>
+
     <!-- Add typical dependencies for a web application -->
     <dependencies>
 
@@ -82,7 +86,6 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
-            <version>4.0.0.RELEASE</version>
             <scope>test</scope>
         </dependency>
 
